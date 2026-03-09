@@ -1,0 +1,3285 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Produktark-generator – 1 side</title>
+  <style>
+    :root{
+      --bg:#efede9;
+      --panel:#ffffff;
+      --line:#d8dde4;
+      --text:#223247;
+      --muted:#6f7d8e;
+      --dark:#2c3137;
+      --orange:#ea8528;
+      --orange-2:#f39a45;
+      --shadow:0 10px 26px rgba(15,23,42,.08);
+      --radius-xl:18px;
+      --radius-lg:14px;
+      --radius-md:12px;
+      --radius-sm:10px;
+      --font:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+
+      --sheet-w:794px;
+      --sheet-h:1123px;
+
+      --sheet-pad-x:16px;
+      --sheet-pad-top:16px;
+      --sheet-pad-bottom:1px;
+
+      --row-header:40px;
+      --row-top:326px;
+      --row-mid:300px;
+      --row-tables:210px;
+      --row-footer:126px;
+
+      --print-page-margin:4mm;
+      --print-sheet-w:202mm;
+      --print-sheet-h:289mm;
+    }
+
+    *{
+      box-sizing:border-box;
+      min-width:0;
+      -webkit-print-color-adjust:exact !important;
+      print-color-adjust:exact !important;
+    }
+
+    html,body{
+      margin:0;
+      padding:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:var(--font);
+    }
+
+    body{ line-height:1.35; }
+    img{ display:block; max-width:100%; }
+    button,input,textarea,select{ font:inherit; }
+
+    .app{
+      max-width:1540px;
+      margin:0 auto;
+      padding:12px;
+    }
+
+    .topbar{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:var(--radius-xl);
+      box-shadow:var(--shadow);
+      padding:12px 14px;
+      display:flex;
+      gap:14px;
+      justify-content:space-between;
+      align-items:flex-start;
+      margin-bottom:12px;
+    }
+
+    .brand{
+      display:flex;
+      gap:14px;
+      align-items:center;
+      flex:1;
+    }
+
+    .eyebrow{
+      color:var(--orange);
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      margin-bottom:4px;
+    }
+
+    h1{
+      margin:0 0 3px;
+      font-size:clamp(28px,3vw,40px);
+      line-height:1;
+      letter-spacing:-.04em;
+      color:#1d2733;
+    }
+
+    .lead{
+      margin:0;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      align-items:center;
+    }
+
+    .btn{
+      height:38px;
+      padding:0 14px;
+      border-radius:12px;
+      border:1px solid transparent;
+      background:#fff;
+      color:#1f2937;
+      font-weight:900;
+      cursor:pointer;
+      transition:.15s ease;
+      white-space:nowrap;
+      width:auto;
+      flex:0 0 auto;
+    }
+
+    .btn:hover{ transform:translateY(-1px); }
+
+    .btn-secondary{
+      border-color:var(--line);
+      background:#fff;
+      color:#0f172a;
+    }
+
+    .btn-orange{
+      background:linear-gradient(180deg,var(--orange-2),var(--orange));
+      color:#fff;
+      box-shadow:0 8px 18px rgba(234,133,40,.28);
+    }
+
+    .btn-small{
+      height:34px;
+      padding:0 12px;
+      border-radius:10px;
+      font-size:13px;
+    }
+
+    .btn-toggle-preview{
+      height:36px;
+      padding:0 12px;
+      border-radius:11px;
+      font-size:13px;
+      line-height:1;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns:520px 1fr;
+      gap:12px;
+      align-items:start;
+    }
+
+    .layout.preview-hidden{
+      grid-template-columns:1fr;
+    }
+
+    .layout.preview-hidden .preview-card{
+      display:none;
+    }
+
+    .card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:var(--radius-xl);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .card-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:12px 14px;
+      border-bottom:1px solid var(--line);
+      background:#fff;
+    }
+
+    .card-head h2{
+      margin:0;
+      font-size:18px;
+      color:#1d2733;
+    }
+
+    .card-meta{
+      font-size:12px;
+      font-weight:900;
+      color:var(--muted);
+    }
+
+    .input-card{
+      background:linear-gradient(180deg,#2f353d,#252a31);
+      color:#fff;
+      border-color:#2f353d;
+    }
+
+    .input-card .card-head{
+      background:transparent;
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+
+    .input-card .card-head h2,
+    .input-card .card-meta{
+      color:#fff;
+    }
+
+    .card-body{ padding:12px; }
+
+    .section-editor{
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:16px;
+      padding:12px;
+      background:rgba(255,255,255,.04);
+      margin-bottom:10px;
+    }
+
+    .section-editor:last-child{ margin-bottom:0; }
+
+    .section-editor h3{
+      margin:0 0 2px;
+      font-size:18px;
+      line-height:1.1;
+    }
+
+    .section-editor p{
+      margin:0;
+      color:rgba(255,255,255,.76);
+      font-size:12px;
+      font-weight:700;
+    }
+
+    .editor-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+      margin-bottom:8px;
+    }
+
+    .form-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    .span-2{ grid-column:span 2; }
+
+    .field label{
+      font-size:12px;
+      font-weight:900;
+      color:#fff;
+    }
+
+    .field input,
+    .field select,
+    .field textarea{
+      width:100%;
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:12px;
+      background:#fff;
+      color:#1f2937;
+      padding:9px 11px;
+      min-height:40px;
+      font-size:14px;
+      font-weight:800;
+      outline:none;
+    }
+
+    .field textarea{
+      min-height:180px;
+      resize:none;
+    }
+
+    .counter-row{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:center;
+      font-size:11px;
+      font-weight:900;
+      color:rgba(255,255,255,.78);
+      margin-top:2px;
+    }
+
+    .counter-pill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:78px;
+      height:24px;
+      padding:0 10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.08);
+      border:1px solid rgba(255,255,255,.10);
+    }
+
+    .counter-pill.warn{
+      color:#fff3cd;
+      border-color:rgba(255,243,205,.35);
+      background:rgba(255,243,205,.10);
+    }
+
+    .counter-pill.max{
+      color:#ffd4d4;
+      border-color:rgba(255,212,212,.35);
+      background:rgba(239,68,68,.16);
+    }
+
+    .limit-note{
+      font-size:11px;
+      color:rgba(255,255,255,.62);
+    }
+
+    .tool-row{
+      display:grid;
+      grid-template-columns:auto 1fr auto;
+      gap:10px;
+      align-items:center;
+      margin-bottom:8px;
+    }
+
+    .tool-row-2{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-bottom:8px;
+    }
+
+    .check{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-size:13px;
+      font-weight:900;
+      color:#fff;
+      white-space:nowrap;
+    }
+
+    .check input{ accent-color:var(--orange); }
+
+    .table-input{
+      width:100%;
+      border:1px solid rgba(255,255,255,.16) !important;
+      border-radius:10px !important;
+      background:#fff !important;
+      color:#1f2937 !important;
+      padding:7px 9px !important;
+      min-height:33px !important;
+      font-size:13px !important;
+      font-weight:800 !important;
+    }
+
+    .table-wrap{
+      overflow:auto;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:12px;
+    }
+
+    .input-card table{
+      width:100%;
+      border-collapse:collapse;
+      background:rgba(255,255,255,.04);
+      table-layout:fixed;
+    }
+
+    .input-card th,
+    .input-card td{
+      padding:6px;
+      text-align:left;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      vertical-align:middle;
+    }
+
+    .input-card th{
+      font-size:12px;
+      font-weight:900;
+      color:rgba(255,255,255,.78);
+      background:rgba(255,255,255,.05);
+    }
+
+    .remove-row{
+      width:30px;
+      height:30px;
+      border-radius:10px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.08);
+      color:#fff;
+      font-size:18px;
+      cursor:pointer;
+    }
+
+    .dropzone{
+      margin-top:8px;
+      border:2px dashed rgba(255,255,255,.18);
+      border-radius:14px;
+      padding:14px;
+      text-align:center;
+      color:#fff;
+      font-weight:900;
+      background:rgba(255,255,255,.03);
+    }
+
+    .dropzone.dragover{
+      border-color:var(--orange);
+      background:rgba(234,133,40,.08);
+    }
+
+    .image-toolbar{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .statusbar{
+      margin-top:10px;
+      font-size:12px;
+      font-weight:900;
+      color:rgba(255,255,255,.76);
+    }
+
+    .statusbar.warn{
+      color:#ffd1c7;
+    }
+
+    .preview-card{
+      display:flex;
+      flex-direction:column;
+      position:sticky;
+      top:12px;
+      max-height:calc(100vh - 24px);
+      overflow:hidden;
+    }
+
+    .preview-area{
+      flex:1 1 auto;
+      min-height:0;
+      background:#e8e4df;
+      padding:12px;
+      overflow:auto;
+    }
+
+    .preview-pages{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:18px;
+      width:100%;
+      min-height:100%;
+    }
+
+    .sheet{
+      width:var(--sheet-w);
+      min-height:var(--sheet-h);
+      background:#fff;
+      box-shadow:0 12px 30px rgba(0,0,0,.12);
+      border-radius:6px;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .sheet-inner{
+      padding:var(--sheet-pad-top) var(--sheet-pad-x) var(--sheet-pad-bottom);
+      min-height:var(--sheet-h);
+      height:var(--sheet-h);
+    }
+
+    .sheet-body{
+      height:calc(var(--sheet-h) - var(--sheet-pad-top) - var(--sheet-pad-bottom));
+      display:grid;
+      grid-template-rows:
+        var(--row-header)
+        var(--row-top)
+        var(--row-mid)
+        var(--row-tables)
+        1fr
+        var(--row-footer);
+      gap:8px;
+    }
+
+    .page-num{
+      position:absolute;
+      right:22px;
+      bottom:12px;
+      color:#94a3b8;
+      font-size:11px;
+      font-weight:900;
+    }
+
+    .sheet-header-row{
+      height:var(--row-header);
+      min-height:var(--row-header);
+      max-height:var(--row-header);
+    }
+
+    .sheet-top-row{
+      height:var(--row-top);
+      min-height:var(--row-top);
+      max-height:var(--row-top);
+    }
+
+    .sheet-mid-row{
+      height:var(--row-mid);
+      min-height:var(--row-mid);
+      max-height:var(--row-mid);
+      display:grid;
+      grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+      gap:8px;
+    }
+
+    .sheet-table-row{
+      height:var(--row-tables);
+      min-height:var(--row-tables);
+      max-height:var(--row-tables);
+      display:grid;
+      grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+      gap:8px;
+    }
+
+    .sheet-spacer-row{
+      min-height:0;
+    }
+
+    .sheet-bottom-row{
+      height:var(--row-footer);
+      min-height:var(--row-footer);
+      max-height:var(--row-footer);
+      display:grid;
+      grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+      gap:8px;
+      transform:translateY(-16px);
+    }
+
+    .header-logos{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      align-items:start;
+      gap:16px;
+      width:100%;
+      height:var(--row-header);
+      min-height:var(--row-header);
+      max-height:var(--row-header);
+      margin:0;
+      padding:0;
+    }
+
+    .brand-mark-wrap,
+    .vendor-mark-wrap{
+      display:flex;
+      align-items:flex-start;
+      width:100%;
+      height:var(--row-header);
+      min-height:var(--row-header);
+      max-height:var(--row-header);
+      margin:0;
+      padding:0;
+    }
+
+    .brand-mark-wrap{ justify-content:flex-start; }
+    .vendor-mark-wrap{ justify-content:flex-end; }
+
+    .brand-mark,
+    .vendor-mark{
+      display:block;
+      max-height:38px;
+      width:auto;
+      max-width:100%;
+      object-fit:contain;
+      object-position:left top;
+      margin:0;
+      padding:0;
+    }
+
+    .vendor-mark{ object-position:right top; }
+
+    .header-logos.no-left .brand-mark-wrap{ visibility:hidden; }
+    .header-logos.no-right .vendor-mark-wrap{ visibility:hidden; }
+
+    .top-grid{
+      display:grid;
+      grid-template-columns:minmax(0,1.04fr) minmax(0,.96fr);
+      gap:8px;
+      align-items:stretch;
+      height:100%;
+    }
+
+    .top-grid > *,
+    .sheet-mid-row > *,
+    .sheet-table-row > *,
+    .sheet-bottom-row > *{
+      min-height:0;
+      height:100%;
+    }
+
+    .gallery{
+      display:grid;
+      grid-template-rows:242px 76px;
+      gap:8px;
+      height:100%;
+    }
+
+    .hero,.thumb{
+      position:relative;
+      overflow:hidden;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:#eff2f5;
+    }
+
+    .hero{ height:242px; }
+
+    .thumb-row{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:8px;
+      height:76px;
+    }
+
+    .thumb{ height:76px; }
+
+    .hero img,.thumb img{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      object-position:center center;
+      display:none;
+    }
+
+    .hero.has-image img,.thumb.has-image img{
+      display:block;
+    }
+
+    .placeholder{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#8793a0;
+      font-weight:900;
+      font-size:12px;
+      text-align:center;
+      padding:8px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.52) 25%, transparent 25%) -20px 0/40px 40px,
+        linear-gradient(225deg, rgba(255,255,255,.52) 25%, transparent 25%) -20px 0/40px 40px,
+        linear-gradient(315deg, rgba(255,255,255,.52) 25%, transparent 25%) 0 0/40px 40px,
+        linear-gradient(45deg, rgba(255,255,255,.52) 25%, transparent 25%) 0 0/40px 40px,
+        #e8ecef;
+    }
+
+    .summary{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:8px 10px 8px;
+      background:#fff;
+      height:100%;
+      min-height:var(--row-top);
+      max-height:var(--row-top);
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      justify-content:flex-start;
+      overflow:hidden;
+    }
+
+    .summary h2{
+      margin:0;
+      font-size:19px;
+      color:#111827;
+      line-height:1.05;
+    }
+
+    .summary-subline{
+      color:#64748b;
+      font-size:12px;
+      font-weight:800;
+      min-height:14px;
+      margin-top:-1px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .summary-sku-box,
+    .status-box{
+      border:1px solid var(--line);
+      border-radius:12px;
+      min-height:44px;
+      padding:7px 10px;
+      background:#fafafa;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+    }
+
+    .summary-sku-box .label,
+    .status-box .label{
+      color:#64748b;
+      font-size:10px;
+      font-weight:900;
+      margin-bottom:1px;
+    }
+
+    .summary-sku-box .value,
+    .status-box .value{
+      color:#1f2937;
+      font-size:13px;
+      font-weight:900;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .summary-row-2{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+      gap:8px;
+      align-items:stretch;
+    }
+
+    .price-box{
+      border:1px solid #f0d7ba;
+      border-radius:14px;
+      background:#f7efe3;
+      padding:10px 12px 8px;
+      min-height:70px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      overflow:hidden;
+      margin-top:8px;
+    }
+
+    .price-box .l{
+      color:#a56d33;
+      font-size:12px;
+      font-weight:900;
+      margin-bottom:2px;
+      line-height:1.05;
+    }
+
+    .price-box .v{
+      color:#a45c12;
+      font-size:18px;
+      font-weight:900;
+      line-height:1.02;
+    }
+
+    .price-box .s{
+      color:#7b5a3c;
+      font-size:10px;
+      font-weight:800;
+      margin-top:3px;
+      line-height:1.2;
+      min-height:13px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .offer-box{
+      border-radius:14px;
+      background:#2c3137;
+      padding:6px 11px;
+      color:#fff;
+      overflow:hidden;
+    }
+
+    .offer-row{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      padding:3px 0;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      font-size:12px;
+      font-weight:800;
+    }
+
+    .offer-row:last-child{ border-bottom:0; }
+
+    .sheet-section{
+      border:1px solid var(--line);
+      border-radius:14px;
+      overflow:hidden;
+      background:#fff;
+      min-height:0;
+      height:100%;
+      display:flex;
+      flex-direction:column;
+    }
+
+    .sheet-section-title{
+      background:var(--dark);
+      color:#fff;
+      padding:8px 12px;
+      font-size:14px;
+      font-weight:900;
+      line-height:1.1;
+      flex:0 0 auto;
+    }
+
+    .sheet-section-body{
+      padding:6px 8px;
+      min-height:0;
+      flex:1 1 auto;
+      overflow:hidden;
+    }
+
+    .text-block{
+      font-size:11px;
+      color:#334155;
+      line-height:1.34;
+      white-space:pre-wrap;
+      overflow:hidden;
+      min-height:0;
+    }
+
+    .text-block.text-clamp-product{
+      display:-webkit-box;
+      -webkit-line-clamp:12;
+      -webkit-box-orient:vertical;
+      overflow:hidden;
+    }
+
+    .text-block.text-clamp-free{
+      display:-webkit-box;
+      -webkit-line-clamp:4;
+      -webkit-box-orient:vertical;
+      overflow:hidden;
+      line-height:1.2;
+      font-size:11px;
+    }
+
+    .spec-grid{
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+      min-height:0;
+      height:100%;
+      overflow:hidden;
+    }
+
+    .spec-item{
+      border:1px solid #eceff3;
+      border-radius:10px;
+      background:#fafafa;
+      padding:1px 6px;
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      gap:5px;
+      align-items:center;
+      min-height:13px;
+    }
+
+    .spec-item .k{
+      color:#2a3442;
+      font-size:10px;
+      font-weight:800;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .spec-item .v{
+      color:#1f2937;
+      font-size:9px;
+      font-weight:900;
+      text-align:right;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width:150px;
+    }
+
+    .sheet-table{
+      width:100%;
+      border-collapse:collapse;
+      table-layout:fixed;
+    }
+
+    .sheet-table col.col-product{ width:auto; }
+    .sheet-table col.col-price{ width:108px; }
+    .sheet-table col.col-status{ width:92px; }
+
+    .sheet-table th,
+    .sheet-table td{
+      text-align:left;
+      padding:5px 6px;
+      border-bottom:1px solid #eceff3;
+      font-size:10px;
+      vertical-align:top;
+    }
+
+    .sheet-table th{
+      color:var(--muted);
+      font-weight:900;
+      background:#fafafa;
+    }
+
+    .sheet-table td.num,
+    .sheet-table th.num{
+      text-align:right;
+    }
+
+    .sheet-table tbody tr:last-child td{
+      border-bottom:0;
+    }
+
+    .sheet-table .truncate{
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .contact-box{
+      border:1px solid var(--line);
+      border-radius:12px;
+      overflow:hidden;
+      background:#fff;
+      height:100%;
+      min-height:0;
+      display:flex;
+      flex-direction:column;
+    }
+
+    .contact-head{
+      background:var(--dark);
+      color:#fff;
+      padding:6px 10px;
+      font-size:12px;
+      font-weight:900;
+      line-height:1.1;
+      flex:0 0 auto;
+    }
+
+    .contact-body{
+      padding:10px 8px 1px;
+      flex:1 1 auto;
+      overflow:hidden;
+    }
+
+    .contact-body h4{
+      margin:0 0 4px;
+      color:#1f2937;
+      font-size:10px;
+      line-height:1.08;
+    }
+
+    .contact-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:4px 10px;
+    }
+
+    .contact-item strong{
+      display:block;
+      color:#1f2937;
+      font-size:10px;
+      font-weight:800;
+      margin-bottom:0;
+      line-height:1.08;
+    }
+
+    .contact-item span{
+      display:block;
+      color:#223247;
+      font-size:10px;
+      line-height:1.25;
+      white-space:normal;
+      overflow-wrap:anywhere;
+      word-break:break-word;
+    }
+
+    .contact-item .accent{
+      color:var(--orange);
+      font-weight:900;
+    }
+
+    .logo-preview{
+      position:relative;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:14px;
+      overflow:hidden;
+      background:#fff;
+      aspect-ratio:2.4/1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px;
+      margin-top:8px;
+    }
+
+    .logo-preview img{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+    }
+
+    .input-gallery{
+      margin-top:10px;
+      display:grid;
+      grid-template-rows:220px 88px;
+      gap:8px;
+    }
+
+    .input-hero,
+    .input-thumb{
+      position:relative;
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:14px;
+      overflow:hidden;
+      background:rgba(255,255,255,.07);
+    }
+
+    .input-hero{ height:220px; }
+
+    .input-thumb-row{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:8px;
+      height:88px;
+    }
+
+    .input-thumb{ height:88px; }
+
+    .input-hero img,
+    .input-thumb img{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:none;
+    }
+
+    .input-hero.has-image img,
+    .input-thumb.has-image img{
+      display:block;
+    }
+
+    .input-placeholder{
+      position:absolute;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:8px;
+      color:#fff;
+      font-size:12px;
+      font-weight:900;
+      background:rgba(255,255,255,.06);
+      border:2px dashed rgba(255,255,255,.14);
+      border-radius:14px;
+    }
+
+    .drag-slot.drag-over{
+      outline:2px solid var(--orange);
+      outline-offset:-2px;
+      background:rgba(234,133,40,.12);
+    }
+
+    .drag-slot.dragging{ opacity:.55; }
+
+    .slot-badge{
+      position:absolute;
+      left:8px;
+      top:8px;
+      z-index:2;
+      background:rgba(0,0,0,.72);
+      color:#fff;
+      padding:4px 7px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:900;
+    }
+
+    .slot-remove{
+      position:absolute;
+      top:8px;
+      right:8px;
+      z-index:2;
+      width:28px;
+      height:28px;
+      border-radius:50%;
+      border:0;
+      background:rgba(0,0,0,.72);
+      color:#fff;
+      font-size:18px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+    }
+
+    .sheet-bottom-row .sheet-section .sheet-section-body{
+      padding:10px 8px 1px;
+    }
+
+    @media (max-width: 1320px){
+      .layout{ grid-template-columns:1fr; }
+      .preview-card{
+        position:static;
+        max-height:none;
+      }
+      .preview-area{ max-height:none; }
+    }
+
+    @media (max-width: 900px){
+      .topbar{ flex-direction:column; }
+      .brand{ flex-direction:column; align-items:flex-start; }
+      .actions{ width:100%; }
+      .form-grid,
+      .top-grid,
+      .summary-row-2,
+      .sheet-mid-row,
+      .sheet-table-row,
+      .sheet-bottom-row,
+      .contact-grid{
+        grid-template-columns:1fr;
+      }
+      .summary{ min-height:auto; max-height:none; }
+      .btn{ width:100%; }
+      .btn-toggle-preview{ width:auto !important; }
+      .sheet{
+        width:100%;
+        min-height:auto;
+      }
+      .sheet-inner{
+        min-height:auto;
+        height:auto;
+        padding:16px;
+      }
+      .sheet-body{
+        height:auto;
+        display:flex;
+        flex-direction:column;
+      }
+      .header-logos{
+        grid-template-columns:1fr;
+        height:auto;
+      }
+      .brand-mark-wrap,
+      .vendor-mark-wrap{
+        justify-content:flex-start;
+        height:auto;
+      }
+      .sheet-header-row,
+      .sheet-top-row,
+      .sheet-mid-row,
+      .sheet-table-row,
+      .sheet-bottom-row{
+        min-height:auto;
+        max-height:none;
+        height:auto;
+      }
+      .sheet-spacer-row{
+        display:none;
+      }
+      .sheet-bottom-row{
+        transform:none;
+      }
+    }
+
+    @page{
+      size:A4 portrait;
+      margin:0;
+    }
+
+    @media print{
+      html,body{
+        margin:0 !important;
+        padding:0 !important;
+        background:#fff !important;
+        height:auto !important;
+        overflow:visible !important;
+      }
+
+      body{
+        -webkit-print-color-adjust:exact !important;
+        print-color-adjust:exact !important;
+      }
+
+      .topbar,
+      .input-card{
+        display:none !important;
+      }
+
+      .layout{
+        display:block !important;
+      }
+
+      .preview-card{
+        position:static !important;
+        max-height:none !important;
+        overflow:visible !important;
+        border:none !important;
+        box-shadow:none !important;
+        background:#fff !important;
+      }
+
+      .card-head{
+        display:none !important;
+      }
+
+      .preview-area{
+        background:#fff !important;
+        padding:0 !important;
+        overflow:visible !important;
+      }
+
+      .sheet{
+        width:var(--print-sheet-w) !important;
+        min-height:var(--print-sheet-h) !important;
+        margin:var(--print-page-margin) auto 0 !important;
+        box-shadow:none !important;
+        border-radius:0 !important;
+        overflow:hidden !important;
+      }
+
+      .sheet-inner{
+        min-height:var(--print-sheet-h) !important;
+        height:var(--print-sheet-h) !important;
+        padding:var(--sheet-pad-top) var(--sheet-pad-x) var(--sheet-pad-bottom) !important;
+      }
+
+      .sheet-body{
+        height:calc(var(--print-sheet-h) - var(--sheet-pad-top) - var(--sheet-pad-bottom)) !important;
+        display:grid !important;
+        grid-template-rows:
+          var(--row-header)
+          var(--row-top)
+          var(--row-mid)
+          var(--row-tables)
+          1fr
+          var(--row-footer) !important;
+        gap:8px !important;
+      }
+
+      .page-num{
+        display:none !important;
+      }
+
+      .preview-pages{
+        display:block !important;
+      }
+
+      .sheet-header-row{
+        height:var(--row-header) !important;
+        min-height:var(--row-header) !important;
+        max-height:var(--row-header) !important;
+      }
+
+      .sheet-top-row{
+        height:var(--row-top) !important;
+        min-height:var(--row-top) !important;
+        max-height:var(--row-top) !important;
+      }
+
+      .sheet-mid-row{
+        height:var(--row-mid) !important;
+        min-height:var(--row-mid) !important;
+        max-height:var(--row-mid) !important;
+        display:grid !important;
+        grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+        gap:8px !important;
+      }
+
+      .sheet-table-row{
+        height:var(--row-tables) !important;
+        min-height:var(--row-tables) !important;
+        max-height:var(--row-tables) !important;
+        display:grid !important;
+        grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+        gap:8px !important;
+      }
+
+      .sheet-bottom-row{
+        height:var(--row-footer) !important;
+        min-height:var(--row-footer) !important;
+        max-height:var(--row-footer) !important;
+        display:grid !important;
+        grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+        gap:8px !important;
+        transform:none !important;
+      }
+
+      .top-grid{
+        display:grid !important;
+        grid-template-columns:minmax(0,1.04fr) minmax(0,.96fr) !important;
+        gap:8px !important;
+        align-items:stretch !important;
+        height:100% !important;
+      }
+
+      .top-grid > *,
+      .sheet-mid-row > *,
+      .sheet-table-row > *,
+      .sheet-bottom-row > *{
+        min-height:0 !important;
+        height:100% !important;
+      }
+
+      .header-logos{
+        display:grid !important;
+        grid-template-columns:1fr 1fr !important;
+        align-items:start !important;
+        gap:16px !important;
+        width:100% !important;
+        height:var(--row-header) !important;
+        min-height:var(--row-header) !important;
+        max-height:var(--row-header) !important;
+        margin:0 !important;
+        padding:0 !important;
+      }
+
+      .brand-mark-wrap,
+      .vendor-mark-wrap{
+        display:flex !important;
+        align-items:flex-start !important;
+        width:100% !important;
+        height:var(--row-header) !important;
+        min-height:var(--row-header) !important;
+        max-height:var(--row-header) !important;
+        margin:0 !important;
+        padding:0 !important;
+      }
+
+      .brand-mark-wrap{ justify-content:flex-start !important; }
+      .vendor-mark-wrap{ justify-content:flex-end !important; }
+
+      .brand-mark,
+      .vendor-mark{
+        display:block !important;
+        max-height:38px !important;
+        width:auto !important;
+        max-width:100% !important;
+        object-fit:contain !important;
+        margin:0 !important;
+        padding:0 !important;
+      }
+
+      .summary{
+        padding:8px 10px 8px !important;
+        height:100% !important;
+        min-height:var(--row-top) !important;
+        max-height:var(--row-top) !important;
+        gap:6px !important;
+      }
+
+      .summary-subline{
+        min-height:14px !important;
+        margin-top:-1px !important;
+      }
+
+      .summary-sku-box,
+      .status-box{
+        min-height:44px !important;
+        padding:7px 10px !important;
+      }
+
+      .price-box{
+        padding:10px 12px 8px !important;
+        min-height:70px !important;
+        margin-top:6px !important;
+      }
+
+      .price-box .l{
+        margin-bottom:2px !important;
+        line-height:1.05 !important;
+      }
+
+      .price-box .v{
+        line-height:1.02 !important;
+      }
+
+      .price-box .s{
+        margin-top:3px !important;
+        line-height:1.2 !important;
+        min-height:13px !important;
+      }
+
+      .offer-box{
+        padding:6px 11px !important;
+      }
+
+      .offer-row{
+        padding:3px 0 !important;
+      }
+
+      .summary-row-2{
+        display:grid !important;
+        grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+        gap:8px !important;
+      }
+
+      .gallery{
+        display:grid !important;
+        grid-template-rows:242px 76px !important;
+        gap:8px !important;
+        height:100% !important;
+      }
+
+      .thumb-row{
+        display:grid !important;
+        grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+        gap:8px !important;
+        height:76px !important;
+      }
+
+      .hero,
+      .thumb{
+        position:relative !important;
+        overflow:hidden !important;
+        border:1px solid var(--line) !important;
+        border-radius:14px !important;
+        background:#eff2f5 !important;
+      }
+
+      .hero{ height:242px !important; }
+      .thumb{ height:76px !important; }
+
+      .hero img,
+      .thumb img{
+        position:absolute !important;
+        inset:0 !important;
+        width:100% !important;
+        height:100% !important;
+        object-fit:cover !important;
+        object-position:center center !important;
+        display:block !important;
+      }
+
+      .hero:not(.has-image) img,
+      .thumb:not(.has-image) img{
+        display:none !important;
+      }
+
+      .placeholder{
+        display:flex !important;
+      }
+
+      .hero.has-image .placeholder,
+      .thumb.has-image .placeholder{
+        display:none !important;
+      }
+
+      .spec-item .k{
+        color:#2a3442 !important;
+        font-size:10px !important;
+        font-weight:800 !important;
+      }
+
+      .contact-body{
+        padding:10px 8px 1px !important;
+      }
+
+      .contact-grid{
+        display:grid !important;
+        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+        gap:4px 10px !important;
+      }
+
+      .contact-body h4{
+        font-size:10px !important;
+        margin:0 0 4px !important;
+      }
+
+      .contact-item strong{
+        font-size:10px !important;
+        font-weight:800 !important;
+        line-height:1.08 !important;
+      }
+
+      .contact-item span{
+        font-size:10px !important;
+        line-height:1.25 !important;
+      }
+
+      .sheet-bottom-row .sheet-section .sheet-section-body{
+        padding:10px 8px 1px !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="brand">
+        <div>
+          <div class="eyebrow">Internt verktøy</div>
+          <h1>Produktark-generator</h1>
+          <p class="lead">Fast 1-side-editor med samme layout i forhåndsvisning og PDF.</p>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="btnTogglePreview" class="btn btn-secondary btn-toggle-preview" type="button">Skjul forhåndsvisning</button>
+        <button id="btnReset" class="btn btn-secondary" type="button">Tøm ark</button>
+        <button id="btnSaveProject" class="btn btn-secondary" type="button">Lagre prosjekt</button>
+        <button id="btnOpenProject" class="btn btn-secondary" type="button">Åpne prosjekt</button>
+        <button id="btnPrintPdf" class="btn btn-orange" type="button">Skriv ut / lagre PDF</button>
+        <input id="projectFileInput" type="file" accept=".json,.tmproj,application/json" hidden />
+      </div>
+    </div>
+
+    <div id="layout" class="layout">
+      <section class="card input-card">
+        <div class="card-head">
+          <h2>Opprett produktark</h2>
+          <div class="card-meta">Fast 1-side-mal</div>
+        </div>
+
+        <div class="card-body">
+          <div class="section-editor">
+            <h3>Logoer</h3>
+            <p>To egne logofelt i headeren. Vises side om side.</p>
+
+            <div class="form-grid" style="margin-top:8px;">
+              <div class="field">
+                <label>Venstre logo (firma)</label>
+                <div class="image-toolbar">
+                  <button id="btnBrandLogo" class="btn btn-orange btn-small" type="button">Velg logo</button>
+                  <button id="btnClearBrandLogo" class="btn btn-secondary btn-small" type="button">Tøm</button>
+                  <input id="brandLogoInput" type="file" accept="image/*" hidden />
+                </div>
+                <div id="brandLogoPreview"></div>
+              </div>
+
+              <div class="field">
+                <label>Merkelogo (høyre)</label>
+                <div class="image-toolbar">
+                  <button id="btnVendorLogo" class="btn btn-orange btn-small" type="button">Velg logo</button>
+                  <button id="btnClearVendorLogo" class="btn btn-secondary btn-small" type="button">Tøm</button>
+                  <input id="vendorLogoInput" type="file" accept="image/*" hidden />
+                </div>
+                <div id="vendorLogoPreview"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-editor">
+            <h3>Grunninformasjon</h3>
+            <p>Tomme seksjoner skjules automatisk. Feltene er begrenset for å holde én side.</p>
+
+            <div class="form-grid" style="margin-top:8px;">
+              <div class="field span-2">
+                <label for="productName">Produktnavn</label>
+                <input id="productName" type="text" maxlength="58" placeholder="Eks. JPM 2 aksla maskintralle" />
+                <div class="counter-row">
+                  <span class="limit-note">Én linje</span>
+                  <span id="productNameCount" class="counter-pill">0 / 58</span>
+                </div>
+              </div>
+
+              <div class="field span-2">
+                <label for="shortDescription">Kort beskrivelse</label>
+                <input id="shortDescription" type="text" maxlength="70" placeholder="Kort linje under produktnavn" />
+                <div class="counter-row">
+                  <span class="limit-note">Én linje</span>
+                  <span id="shortDescriptionCount" class="counter-pill">0 / 70</span>
+                </div>
+              </div>
+
+              <div class="field span-2">
+                <label for="varenummer">Varenummer</label>
+                <input id="varenummer" type="text" maxlength="36" placeholder="Eks. JPMLL19T" />
+                <div class="counter-row">
+                  <span class="limit-note">Én linje</span>
+                  <span id="varenummerCount" class="counter-pill">0 / 36</span>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="status">Status</label>
+                <select id="status">
+                  <option value="">Velg status</option>
+                  <option value="På lager">På lager</option>
+                  <option value="Reservert">Reservert</option>
+                  <option value="Solgt">Solgt</option>
+                  <option value="Nyhet">Nyhet</option>
+                  <option value="Brukt">Brukt</option>
+                  <option value="Demobrukt">Demobrukt</option>
+                  <option value="Kampanje">Kampanje</option>
+                  <option value="Messepris">Messepris</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label for="individnummer">Individnummer</label>
+                <input id="individnummer" type="text" maxlength="24" placeholder="Eks. 11354" />
+                <div class="counter-row">
+                  <span class="limit-note">Én linje</span>
+                  <span id="individnummerCount" class="counter-pill">0 / 24</span>
+                </div>
+              </div>
+
+              <div class="field span-2">
+                <label for="description">Produktinfo</label>
+                <textarea id="description" placeholder="Utfyllende produktinfo"></textarea>
+                <div class="counter-row">
+                  <span id="descriptionLines" class="limit-note">0 / 16 linjer</span>
+                  <span id="descriptionCount" class="counter-pill">0 / 760</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-editor">
+            <h3>Pris og tilbud</h3>
+            <p>To utfylte prisfelt beregner det tredje automatisk.</p>
+
+            <div class="form-grid" style="margin-top:8px;">
+              <div class="field">
+                <label for="listPrice">Listepris</label>
+                <input id="listPrice" type="number" min="0" step="1" placeholder="Eks. 215000" />
+              </div>
+
+              <div class="field">
+                <label for="discountAmount">Rabattbeløp</label>
+                <input id="discountAmount" type="number" min="0" step="1" placeholder="Eks. 16000" />
+              </div>
+
+              <div class="field">
+                <label for="offerPrice">Tilbudspris / pris</label>
+                <input id="offerPrice" type="number" min="0" step="1" placeholder="Eks. 199000" />
+              </div>
+
+              <div class="field">
+                <label for="priceNote">Prisnotat</label>
+                <input id="priceNote" type="text" maxlength="36" placeholder="Eks. Pris eks. mva / messepris" />
+                <div class="counter-row">
+                  <span class="limit-note">Én linje</span>
+                  <span id="priceNoteCount" class="counter-pill">0 / 36</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-editor">
+            <div class="editor-head">
+              <div>
+                <h3>Bilder</h3>
+                <p>Dra bildene rundt for å endre rekkefølge. Første bilde blir hovedbilde.</p>
+              </div>
+              <div class="image-toolbar">
+                <button id="btnAddImages" class="btn btn-orange btn-small" type="button">Velg bilder</button>
+                <button id="btnClearImages" class="btn btn-secondary btn-small" type="button">Tøm bilder</button>
+                <input id="multiImageInput" type="file" accept="image/*" multiple hidden />
+              </div>
+            </div>
+
+            <div id="dropzone" class="dropzone">Dra bilder hit eller trykk «Velg bilder».</div>
+            <div id="inputGallery" class="input-gallery"></div>
+          </div>
+
+          <div class="section-editor">
+            <div class="editor-head">
+              <div>
+                <h3>Spesifikasjoner</h3>
+                <p>Maks 10 rader.</p>
+              </div>
+            </div>
+
+            <div class="tool-row">
+              <label class="check"><input id="toggleSpecs" type="checkbox" checked /> Vis seksjon</label>
+              <input id="specsTitle" class="table-input" type="text" maxlength="28" value="Spesifikasjoner" />
+              <button id="addSpecBtn" class="btn btn-orange btn-small" type="button">Legg til rad</button>
+            </div>
+
+            <div class="counter-row" style="margin-bottom:8px;">
+              <span id="specRowsInfo" class="limit-note">0 / 10 rader brukt</span>
+              <span id="specTitleCount" class="counter-pill">0 / 28</span>
+            </div>
+
+            <div class="table-wrap">
+              <table id="specTable">
+                <thead>
+                  <tr>
+                    <th>Felt</th>
+                    <th>Verdi</th>
+                    <th style="width:48px;"></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="section-editor">
+            <div class="editor-head">
+              <div>
+                <h3>Påmontert utstyr</h3>
+                <p>Maks 5 rader.</p>
+              </div>
+            </div>
+
+            <div class="tool-row-2">
+              <label class="check"><input id="toggleEquipment" type="checkbox" checked /> Vis seksjon</label>
+              <label class="check"><input id="equipmentIncluded" type="checkbox" checked /> Inkludert i totalpris</label>
+            </div>
+
+            <div class="tool-row">
+              <input id="equipmentTitle" class="table-input" type="text" maxlength="30" value="Påmontert utstyr" />
+              <div></div>
+              <button id="addEquipmentBtn" class="btn btn-orange btn-small" type="button">Legg til rad</button>
+            </div>
+
+            <div class="counter-row" style="margin-bottom:8px;">
+              <span id="equipmentRowsInfo" class="limit-note">0 / 5 rader brukt</span>
+              <span id="equipmentTitleCount" class="counter-pill">0 / 30</span>
+            </div>
+
+            <div class="table-wrap">
+              <table id="equipmentTable">
+                <colgroup>
+                  <col style="width:auto;">
+                  <col style="width:110px;">
+                  <col style="width:110px;">
+                  <col style="width:48px;">
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>Produkt</th>
+                    <th>Pris</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="section-editor">
+            <div class="editor-head">
+              <div>
+                <h3>Valgfritt tilbehør</h3>
+                <p>Maks 5 rader.</p>
+              </div>
+            </div>
+
+            <div class="tool-row-2">
+              <label class="check"><input id="toggleAccessories" type="checkbox" checked /> Vis seksjon</label>
+              <label class="check"><input id="accessoriesExtra" type="checkbox" checked disabled /> Tillegg</label>
+            </div>
+
+            <div class="tool-row">
+              <input id="accessoriesTitle" class="table-input" type="text" maxlength="30" value="Valgfritt tilbehør" />
+              <div></div>
+              <button id="addAccessoryBtn" class="btn btn-orange btn-small" type="button">Legg til rad</button>
+            </div>
+
+            <div class="counter-row" style="margin-bottom:8px;">
+              <span id="accessoriesRowsInfo" class="limit-note">0 / 5 rader brukt</span>
+              <span id="accessoriesTitleCount" class="counter-pill">0 / 30</span>
+            </div>
+
+            <div class="table-wrap">
+              <table id="accessoriesTable">
+                <colgroup>
+                  <col style="width:auto;">
+                  <col style="width:110px;">
+                  <col style="width:110px;">
+                  <col style="width:48px;">
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>Produkt</th>
+                    <th>Pris</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="section-editor">
+            <div class="editor-head">
+              <div>
+                <h3>Fri seksjon</h3>
+                <p>Denne står fast i footer-raden sammen med kontaktinformasjon.</p>
+              </div>
+            </div>
+
+            <div class="tool-row">
+              <label class="check"><input id="toggleFreeSection" type="checkbox" checked /> Vis seksjon</label>
+              <input id="freeSectionTitle" class="table-input" type="text" maxlength="30" value="Din totalleverandør" />
+              <div></div>
+            </div>
+
+            <div class="counter-row" style="margin-bottom:8px;">
+              <span class="limit-note" id="freeSectionLines">0 / 4 linjer</span>
+              <span id="freeSectionTitleCount" class="counter-pill">0 / 30</span>
+            </div>
+
+            <div class="field">
+              <textarea id="freeSectionText" placeholder="Skriv kort fritekst"></textarea>
+              <div class="counter-row">
+                <span class="limit-note">Maks 4 linjer</span>
+                <span id="freeSectionCount" class="counter-pill">0 / 216</span>
+              </div>
+            </div>
+          </div>
+
+          <div id="statusbar" class="statusbar">Klar.</div>
+        </div>
+      </section>
+
+      <section class="card preview-card">
+        <div class="card-head">
+          <h2>Forhåndsvisning</h2>
+          <div id="pageInfo" class="card-meta">1 side</div>
+        </div>
+
+        <div class="preview-area">
+          <div id="previewPages" class="preview-pages"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const LIMITS = {
+        productName: 58,
+        shortDescription: 70,
+        varenummer: 36,
+        individnummer: 24,
+        priceNote: 36,
+        specsTitle: 28,
+        equipmentTitle: 30,
+        accessoriesTitle: 30,
+        freeSectionTitle: 30,
+        description: {
+          maxChars: 760,
+          maxLines: 16,
+          maxCharsPerLine: 44
+        },
+        freeSectionText: {
+          maxChars: 216,
+          maxLines: 4,
+          maxCharsPerLine: 54
+        },
+        specs: {
+          maxRows: 10,
+          labelMax: 24,
+          valueMax: 22
+        },
+        equipment: {
+          maxRows: 5,
+          nameMax: 30,
+          priceMax: 10
+        },
+        accessories: {
+          maxRows: 5,
+          nameMax: 30,
+          priceMax: 10
+        }
+      };
+
+      const DEFAULT_SPECS = ["Merke","Modell","Modelltype","Lengde","Bredde","Høyde"];
+      const PROJECT_EXT = ".tmproj";
+      const $ = (id) => document.getElementById(id);
+
+      function uid(prefix = "id") {
+        return prefix + "-" + Math.random().toString(36).slice(2, 10);
+      }
+
+      function createDefaultSpecs() {
+        return DEFAULT_SPECS.map((label) => ({ id: uid("spec"), label, value: "" }));
+      }
+
+      function createState() {
+        return {
+          productName: "",
+          shortDescription: "",
+          varenummer: "",
+          individnummer: "",
+          status: "",
+          description: "",
+          listPrice: "",
+          discountAmount: "",
+          offerPrice: "",
+          priceNote: "",
+          showSpecs: true,
+          showEquipment: true,
+          showAccessories: true,
+          showFreeSection: true,
+          equipmentIncluded: true,
+          specsTitle: "Spesifikasjoner",
+          equipmentTitle: "Påmontert utstyr",
+          accessoriesTitle: "Valgfritt tilbehør",
+          freeSectionTitle: "Din totalleverandør",
+          freeSectionText: "",
+          specs: createDefaultSpecs(),
+          equipment: [{ id: uid("eq"), name: "", price: "" }],
+          accessories: [{ id: uid("acc"), name: "", price: "" }],
+          images: [],
+          brandLogoDataUrl: "",
+          vendorLogoDataUrl: "",
+          previewVisible: true
+        };
+      }
+
+      const state = createState();
+
+      const el = {
+        layout: $("layout"),
+        productName: $("productName"),
+        shortDescription: $("shortDescription"),
+        varenummer: $("varenummer"),
+        individnummer: $("individnummer"),
+        status: $("status"),
+        description: $("description"),
+        listPrice: $("listPrice"),
+        discountAmount: $("discountAmount"),
+        offerPrice: $("offerPrice"),
+        priceNote: $("priceNote"),
+        toggleSpecs: $("toggleSpecs"),
+        toggleEquipment: $("toggleEquipment"),
+        toggleAccessories: $("toggleAccessories"),
+        toggleFreeSection: $("toggleFreeSection"),
+        equipmentIncluded: $("equipmentIncluded"),
+        specsTitle: $("specsTitle"),
+        equipmentTitle: $("equipmentTitle"),
+        accessoriesTitle: $("accessoriesTitle"),
+        freeSectionTitle: $("freeSectionTitle"),
+        freeSectionText: $("freeSectionText"),
+        addSpecBtn: $("addSpecBtn"),
+        addEquipmentBtn: $("addEquipmentBtn"),
+        addAccessoryBtn: $("addAccessoryBtn"),
+        specTable: $("specTable").querySelector("tbody"),
+        equipmentTable: $("equipmentTable").querySelector("tbody"),
+        accessoriesTable: $("accessoriesTable").querySelector("tbody"),
+        btnAddImages: $("btnAddImages"),
+        btnClearImages: $("btnClearImages"),
+        multiImageInput: $("multiImageInput"),
+        dropzone: $("dropzone"),
+        inputGallery: $("inputGallery"),
+        btnBrandLogo: $("btnBrandLogo"),
+        btnClearBrandLogo: $("btnClearBrandLogo"),
+        brandLogoInput: $("brandLogoInput"),
+        brandLogoPreview: $("brandLogoPreview"),
+        btnVendorLogo: $("btnVendorLogo"),
+        btnClearVendorLogo: $("btnClearVendorLogo"),
+        vendorLogoInput: $("vendorLogoInput"),
+        vendorLogoPreview: $("vendorLogoPreview"),
+        previewPages: $("previewPages"),
+        pageInfo: $("pageInfo"),
+        statusbar: $("statusbar"),
+        btnTogglePreview: $("btnTogglePreview"),
+        btnReset: $("btnReset"),
+        btnSaveProject: $("btnSaveProject"),
+        btnOpenProject: $("btnOpenProject"),
+        btnPrintPdf: $("btnPrintPdf"),
+        projectFileInput: $("projectFileInput"),
+
+        productNameCount: $("productNameCount"),
+        shortDescriptionCount: $("shortDescriptionCount"),
+        varenummerCount: $("varenummerCount"),
+        individnummerCount: $("individnummerCount"),
+        descriptionCount: $("descriptionCount"),
+        descriptionLines: $("descriptionLines"),
+        priceNoteCount: $("priceNoteCount"),
+        specTitleCount: $("specTitleCount"),
+        specRowsInfo: $("specRowsInfo"),
+        equipmentTitleCount: $("equipmentTitleCount"),
+        equipmentRowsInfo: $("equipmentRowsInfo"),
+        accessoriesTitleCount: $("accessoriesTitleCount"),
+        accessoriesRowsInfo: $("accessoriesRowsInfo"),
+        freeSectionTitleCount: $("freeSectionTitleCount"),
+        freeSectionCount: $("freeSectionCount"),
+        freeSectionLines: $("freeSectionLines")
+      };
+
+      let previewTimer = 0;
+      let priceSyncLock = false;
+      let draggedImageIndex = null;
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function nl2br(value) {
+        return escapeHtml(value).replace(/\n/g, "<br>");
+      }
+
+      function nonEmpty(value) {
+        return String(value ?? "").trim() !== "";
+      }
+
+      function sanitizeNumber(value) {
+        return String(value ?? "").replace(/[^\d]/g, "");
+      }
+
+      function asNumber(value) {
+        const n = Number(sanitizeNumber(value));
+        return Number.isFinite(n) ? n : 0;
+      }
+
+      function formatCurrency(value) {
+        const num = Number(value || 0);
+        if (!num) return "";
+        return num.toLocaleString("no-NO") + " kr";
+      }
+
+      function slugify(value) {
+        return String(value || "produktark")
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "")
+          .slice(0, 80) || "produktark";
+      }
+
+      function buildFilenameBase() {
+        const desc = (state.productName || state.shortDescription || "produktark").trim();
+        const ref = (state.individnummer || state.varenummer || "uten-ref").trim();
+        return slugify(`${desc}-${ref}`);
+      }
+
+      function buildProjectFilename() {
+        return buildFilenameBase() + PROJECT_EXT;
+      }
+
+      function buildPdfFilename() {
+        return buildFilenameBase() + ".pdf";
+      }
+
+      function setStatus(text, warn = false) {
+        el.statusbar.textContent = text;
+        el.statusbar.classList.toggle("warn", warn);
+      }
+
+      function setCounter(elm, current, max) {
+        elm.textContent = `${current} / ${max}`;
+        elm.classList.remove("warn", "max");
+        const ratio = max > 0 ? current / max : 0;
+        if (ratio >= 1) elm.classList.add("max");
+        else if (ratio >= 0.8) elm.classList.add("warn");
+      }
+
+      function clampSingleLine(value, max) {
+        return String(value || "").replace(/[\r\n]+/g, " ").slice(0, max);
+      }
+
+      function normalizeWrappedText(value, maxChars, maxLines, maxCharsPerLine) {
+        let source = String(value || "").replace(/\r/g, "");
+        source = source.slice(0, maxChars);
+        const paragraphs = source.split("\n");
+        const lines = [];
+
+        for (const paragraph of paragraphs) {
+          const words = paragraph.split(/\s+/).filter(Boolean);
+
+          if (!words.length) {
+            if (lines.length < maxLines) lines.push("");
+            continue;
+          }
+
+          let current = "";
+
+          for (const originalWord of words) {
+            let word = originalWord;
+
+            while (word.length > maxCharsPerLine) {
+              const part = word.slice(0, maxCharsPerLine);
+              if (current) {
+                if (lines.length < maxLines) lines.push(current);
+                current = "";
+                if (lines.length >= maxLines) break;
+              }
+              if (lines.length < maxLines) lines.push(part);
+              word = word.slice(maxCharsPerLine);
+              if (lines.length >= maxLines) break;
+            }
+
+            if (lines.length >= maxLines) break;
+
+            if (!current) {
+              current = word;
+              continue;
+            }
+
+            const candidate = current + " " + word;
+            if (candidate.length <= maxCharsPerLine) current = candidate;
+            else {
+              lines.push(current);
+              current = word;
+              if (lines.length >= maxLines) break;
+            }
+          }
+
+          if (lines.length >= maxLines) break;
+          if (current) {
+            lines.push(current);
+            if (lines.length >= maxLines) break;
+          }
+        }
+
+        let normalized = lines.slice(0, maxLines).join("\n");
+        if (normalized.length > maxChars) normalized = normalized.slice(0, maxChars);
+        return normalized;
+      }
+
+      function countLines(value) {
+        if (!value) return 0;
+        return String(value).split("\n").length;
+      }
+
+      function updateAllCounters() {
+        setCounter(el.productNameCount, el.productName.value.length, LIMITS.productName);
+        setCounter(el.shortDescriptionCount, el.shortDescription.value.length, LIMITS.shortDescription);
+        setCounter(el.varenummerCount, el.varenummer.value.length, LIMITS.varenummer);
+        setCounter(el.individnummerCount, el.individnummer.value.length, LIMITS.individnummer);
+        setCounter(el.priceNoteCount, el.priceNote.value.length, LIMITS.priceNote);
+        setCounter(el.specTitleCount, el.specsTitle.value.length, LIMITS.specsTitle);
+        setCounter(el.equipmentTitleCount, el.equipmentTitle.value.length, LIMITS.equipmentTitle);
+        setCounter(el.accessoriesTitleCount, el.accessoriesTitle.value.length, LIMITS.accessoriesTitle);
+        setCounter(el.freeSectionTitleCount, el.freeSectionTitle.value.length, LIMITS.freeSectionTitle);
+
+        setCounter(el.descriptionCount, el.description.value.length, LIMITS.description.maxChars);
+        el.descriptionLines.textContent = `${countLines(el.description.value)} / ${LIMITS.description.maxLines} linjer`;
+
+        setCounter(el.freeSectionCount, el.freeSectionText.value.length, LIMITS.freeSectionText.maxChars);
+        el.freeSectionLines.textContent = `${countLines(el.freeSectionText.value)} / ${LIMITS.freeSectionText.maxLines} linjer`;
+
+        el.specRowsInfo.textContent = `${Math.min(state.specs.length, LIMITS.specs.maxRows)} / ${LIMITS.specs.maxRows} rader brukt`;
+        el.equipmentRowsInfo.textContent = `${Math.min(state.equipment.length, LIMITS.equipment.maxRows)} / ${LIMITS.equipment.maxRows} rader brukt`;
+        el.accessoriesRowsInfo.textContent = `${Math.min(state.accessories.length, LIMITS.accessories.maxRows)} / ${LIMITS.accessories.maxRows} rader brukt`;
+      }
+
+      function syncStateFromForm() {
+        state.productName = clampSingleLine(el.productName.value, LIMITS.productName);
+        state.shortDescription = clampSingleLine(el.shortDescription.value, LIMITS.shortDescription);
+        state.varenummer = clampSingleLine(el.varenummer.value, LIMITS.varenummer);
+        state.individnummer = clampSingleLine(el.individnummer.value, LIMITS.individnummer);
+        state.status = el.status.value;
+        state.description = normalizeWrappedText(
+          el.description.value,
+          LIMITS.description.maxChars,
+          LIMITS.description.maxLines,
+          LIMITS.description.maxCharsPerLine
+        );
+        state.listPrice = sanitizeNumber(el.listPrice.value);
+        state.discountAmount = sanitizeNumber(el.discountAmount.value);
+        state.offerPrice = sanitizeNumber(el.offerPrice.value);
+        state.priceNote = clampSingleLine(el.priceNote.value, LIMITS.priceNote);
+        state.showSpecs = el.toggleSpecs.checked;
+        state.showEquipment = el.toggleEquipment.checked;
+        state.showAccessories = el.toggleAccessories.checked;
+        state.showFreeSection = el.toggleFreeSection.checked;
+        state.equipmentIncluded = el.equipmentIncluded.checked;
+        state.specsTitle = clampSingleLine(el.specsTitle.value, LIMITS.specsTitle) || "Spesifikasjoner";
+        state.equipmentTitle = clampSingleLine(el.equipmentTitle.value, LIMITS.equipmentTitle) || "Påmontert utstyr";
+        state.accessoriesTitle = clampSingleLine(el.accessoriesTitle.value, LIMITS.accessoriesTitle) || "Valgfritt tilbehør";
+        state.freeSectionTitle = clampSingleLine(el.freeSectionTitle.value, LIMITS.freeSectionTitle) || "Din totalleverandør";
+        state.freeSectionText = normalizeWrappedText(
+          el.freeSectionText.value,
+          LIMITS.freeSectionText.maxChars,
+          LIMITS.freeSectionText.maxLines,
+          LIMITS.freeSectionText.maxCharsPerLine
+        );
+      }
+
+      function renderForm() {
+        el.productName.value = state.productName;
+        el.shortDescription.value = state.shortDescription;
+        el.varenummer.value = state.varenummer;
+        el.individnummer.value = state.individnummer;
+        el.status.value = state.status;
+        el.description.value = state.description;
+        el.listPrice.value = state.listPrice;
+        el.discountAmount.value = state.discountAmount;
+        el.offerPrice.value = state.offerPrice;
+        el.priceNote.value = state.priceNote;
+        el.toggleSpecs.checked = state.showSpecs;
+        el.toggleEquipment.checked = state.showEquipment;
+        el.toggleAccessories.checked = state.showAccessories;
+        el.toggleFreeSection.checked = state.showFreeSection;
+        el.equipmentIncluded.checked = state.equipmentIncluded;
+        el.specsTitle.value = state.specsTitle;
+        el.equipmentTitle.value = state.equipmentTitle;
+        el.accessoriesTitle.value = state.accessoriesTitle;
+        el.freeSectionTitle.value = state.freeSectionTitle;
+        el.freeSectionText.value = state.freeSectionText;
+        updateAllCounters();
+      }
+
+      function applyPreviewMode() {
+        el.layout.classList.toggle("preview-hidden", !state.previewVisible);
+        el.btnTogglePreview.textContent = state.previewVisible ? "Skjul forhåndsvisning" : "Vis forhåndsvisning";
+      }
+
+      function renderLogoPreview(container, dataUrl, label) {
+        if (!dataUrl) {
+          container.innerHTML = "";
+          return;
+        }
+        container.innerHTML = `
+          <div class="logo-preview">
+            <img src="${dataUrl}" alt="${escapeHtml(label)}" />
+          </div>
+        `;
+      }
+
+      function buildInputImageSlot(image, slotIndex, cls, label) {
+        const hasImage = !!image;
+        return `
+          <div class="${cls} drag-slot ${hasImage ? "has-image" : ""}" draggable="${hasImage ? "true" : "false"}" data-slot="${slotIndex}">
+            <div class="slot-badge">${label}</div>
+            ${hasImage ? `<button class="slot-remove" type="button" data-remove-slot="${slotIndex}">×</button>` : ""}
+            ${hasImage ? `<img src="${image.dataUrl}" alt="${escapeHtml(image.name || "Bilde")}" />` : ""}
+            ${!hasImage ? `<div class="input-placeholder">${label}<br>Tom plass</div>` : ""}
+          </div>
+        `;
+      }
+
+      function renderInputGallery() {
+        const hero = state.images[0] || null;
+        const thumbs = [state.images[1] || null, state.images[2] || null, state.images[3] || null];
+        el.inputGallery.innerHTML = `
+          ${buildInputImageSlot(hero, 0, "input-hero", "Hovedbilde")}
+          <div class="input-thumb-row">
+            ${buildInputImageSlot(thumbs[0], 1, "input-thumb", "Bilde 2")}
+            ${buildInputImageSlot(thumbs[1], 2, "input-thumb", "Bilde 3")}
+            ${buildInputImageSlot(thumbs[2], 3, "input-thumb", "Bilde 4")}
+          </div>
+        `;
+        bindGalleryDnD();
+      }
+
+      function bindGalleryDnD() {
+        el.inputGallery.querySelectorAll(".drag-slot").forEach((slot) => {
+          const slotIndex = Number(slot.dataset.slot);
+          const hasImage = slotIndex < state.images.length;
+
+          if (hasImage) {
+            slot.addEventListener("dragstart", (e) => {
+              draggedImageIndex = slotIndex;
+              slot.classList.add("dragging");
+              e.dataTransfer.effectAllowed = "move";
+              e.dataTransfer.setData("text/plain", String(slotIndex));
+            });
+
+            slot.addEventListener("dragend", () => {
+              draggedImageIndex = null;
+              slot.classList.remove("dragging");
+              el.inputGallery.querySelectorAll(".drag-slot").forEach((n) => n.classList.remove("drag-over"));
+            });
+          }
+
+          slot.addEventListener("dragover", (e) => {
+            if (draggedImageIndex === null) return;
+            e.preventDefault();
+            slot.classList.add("drag-over");
+          });
+
+          slot.addEventListener("dragleave", () => slot.classList.remove("drag-over"));
+
+          slot.addEventListener("drop", (e) => {
+            e.preventDefault();
+            slot.classList.remove("drag-over");
+            if (draggedImageIndex === null) return;
+            if (slotIndex >= state.images.length) return;
+            if (slotIndex === draggedImageIndex) return;
+            const moved = state.images.splice(draggedImageIndex, 1)[0];
+            state.images.splice(slotIndex, 0, moved);
+            renderInputGallery();
+            schedulePreview();
+          });
+        });
+
+        el.inputGallery.querySelectorAll("[data-remove-slot]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.dataset.removeSlot);
+            if (idx < state.images.length) {
+              state.images.splice(idx, 1);
+              renderInputGallery();
+              schedulePreview();
+            }
+          });
+        });
+      }
+
+      function renderSpecTable() {
+        const rows = state.specs.slice(0, LIMITS.specs.maxRows);
+        el.specTable.innerHTML = rows.map((row, index) => `
+          <tr>
+            <td><input class="table-input" data-role="spec-label" data-index="${index}" type="text" maxlength="${LIMITS.specs.labelMax}" value="${escapeHtml(row.label)}" /></td>
+            <td><input class="table-input" data-role="spec-value" data-index="${index}" type="text" maxlength="${LIMITS.specs.valueMax}" value="${escapeHtml(row.value)}" /></td>
+            <td><button class="remove-row" data-role="remove-spec" data-index="${index}" type="button">×</button></td>
+          </tr>
+        `).join("");
+        el.addSpecBtn.disabled = state.specs.length >= LIMITS.specs.maxRows;
+        updateAllCounters();
+      }
+
+      function renderEquipmentTable() {
+        const rows = state.equipment.slice(0, LIMITS.equipment.maxRows);
+        el.equipmentTable.innerHTML = rows.map((row, index) => `
+          <tr>
+            <td><input class="table-input" data-role="eq-name" data-index="${index}" type="text" maxlength="${LIMITS.equipment.nameMax}" value="${escapeHtml(row.name)}" /></td>
+            <td><input class="table-input" data-role="eq-price" data-index="${index}" type="text" maxlength="${LIMITS.equipment.priceMax}" value="${escapeHtml(row.price)}" /></td>
+            <td><input class="table-input" type="text" value="${state.equipmentIncluded ? "Inkludert" : "Tillegg"}" readonly /></td>
+            <td><button class="remove-row" data-role="remove-eq" data-index="${index}" type="button">×</button></td>
+          </tr>
+        `).join("");
+        el.addEquipmentBtn.disabled = state.equipment.length >= LIMITS.equipment.maxRows;
+        updateAllCounters();
+      }
+
+      function renderAccessoriesTable() {
+        const rows = state.accessories.slice(0, LIMITS.accessories.maxRows);
+        el.accessoriesTable.innerHTML = rows.map((row, index) => `
+          <tr>
+            <td><input class="table-input" data-role="acc-name" data-index="${index}" type="text" maxlength="${LIMITS.accessories.nameMax}" value="${escapeHtml(row.name)}" /></td>
+            <td><input class="table-input" data-role="acc-price" data-index="${index}" type="text" maxlength="${LIMITS.accessories.priceMax}" value="${escapeHtml(row.price)}" /></td>
+            <td><input class="table-input" type="text" value="Tillegg" readonly /></td>
+            <td><button class="remove-row" data-role="remove-acc" data-index="${index}" type="button">×</button></td>
+          </tr>
+        `).join("");
+        el.addAccessoryBtn.disabled = state.accessories.length >= LIMITS.accessories.maxRows;
+        updateAllCounters();
+      }
+
+      function bindTables() {
+        el.specTable.addEventListener("input", (e) => {
+          const index = Number(e.target.dataset.index);
+          if (e.target.dataset.role === "spec-label") state.specs[index].label = clampSingleLine(e.target.value, LIMITS.specs.labelMax);
+          if (e.target.dataset.role === "spec-value") state.specs[index].value = clampSingleLine(e.target.value, LIMITS.specs.valueMax);
+          schedulePreview();
+        });
+
+        el.specTable.addEventListener("click", (e) => {
+          const btn = e.target.closest("[data-role='remove-spec']");
+          if (!btn) return;
+          const index = Number(btn.dataset.index);
+          state.specs.splice(index, 1);
+          if (!state.specs.length) state.specs.push({ id: uid("spec"), label: "", value: "" });
+          renderSpecTable();
+          schedulePreview();
+        });
+
+        el.equipmentTable.addEventListener("input", (e) => {
+          const index = Number(e.target.dataset.index);
+          if (e.target.dataset.role === "eq-name") state.equipment[index].name = clampSingleLine(e.target.value, LIMITS.equipment.nameMax);
+          if (e.target.dataset.role === "eq-price") state.equipment[index].price = sanitizeNumber(String(e.target.value).slice(0, LIMITS.equipment.priceMax));
+          schedulePreview();
+        });
+
+        el.equipmentTable.addEventListener("click", (e) => {
+          const btn = e.target.closest("[data-role='remove-eq']");
+          if (!btn) return;
+          const index = Number(btn.dataset.index);
+          state.equipment.splice(index, 1);
+          if (!state.equipment.length) state.equipment.push({ id: uid("eq"), name: "", price: "" });
+          renderEquipmentTable();
+          schedulePreview();
+        });
+
+        el.accessoriesTable.addEventListener("input", (e) => {
+          const index = Number(e.target.dataset.index);
+          if (e.target.dataset.role === "acc-name") state.accessories[index].name = clampSingleLine(e.target.value, LIMITS.accessories.nameMax);
+          if (e.target.dataset.role === "acc-price") state.accessories[index].price = sanitizeNumber(String(e.target.value).slice(0, LIMITS.accessories.priceMax));
+          schedulePreview();
+        });
+
+        el.accessoriesTable.addEventListener("click", (e) => {
+          const btn = e.target.closest("[data-role='remove-acc']");
+          if (!btn) return;
+          const index = Number(btn.dataset.index);
+          state.accessories.splice(index, 1);
+          if (!state.accessories.length) state.accessories.push({ id: uid("acc"), name: "", price: "" });
+          renderAccessoriesTable();
+          schedulePreview();
+        });
+      }
+
+      async function fileToDataUrl(file, maxSize = 1900) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const img = new Image();
+            img.onload = () => {
+              let width = img.width;
+              let height = img.height;
+
+              if (width > height && width > maxSize) {
+                height = Math.round((height * maxSize) / width);
+                width = maxSize;
+              } else if (height >= width && height > maxSize) {
+                width = Math.round((width * maxSize) / height);
+                height = maxSize;
+              }
+
+              const canvas = document.createElement("canvas");
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0, width, height);
+              resolve(canvas.toDataURL("image/png", 0.92));
+            };
+            img.onerror = reject;
+            img.src = String(reader.result);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      }
+
+      async function addFilesToImages(files) {
+        const imageFiles = Array.from(files).filter((file) => file.type.startsWith("image/"));
+        if (!imageFiles.length) return;
+
+        const available = 4 - state.images.length;
+        const selected = imageFiles.slice(0, available);
+
+        for (const file of selected) {
+          const dataUrl = await fileToDataUrl(file, 1900);
+          state.images.push({ name: file.name, dataUrl });
+        }
+
+        renderInputGallery();
+        schedulePreview();
+        setStatus(imageFiles.length > available ? "Kun de første 4 bildene brukes." : "Bilder lastet inn.");
+      }
+
+      async function setSingleLogo(file, target) {
+        if (!file || !file.type.startsWith("image/")) return;
+        const dataUrl = await fileToDataUrl(file, 1400);
+
+        if (target === "brand") {
+          state.brandLogoDataUrl = dataUrl;
+          renderLogoPreview(el.brandLogoPreview, state.brandLogoDataUrl, "Firmalogo");
+        } else {
+          state.vendorLogoDataUrl = dataUrl;
+          renderLogoPreview(el.vendorLogoPreview, state.vendorLogoDataUrl, "Merkelogo");
+        }
+
+        schedulePreview();
+      }
+
+      function syncPriceInputs(changedField) {
+        if (priceSyncLock) return;
+        priceSyncLock = true;
+
+        let list = asNumber(el.listPrice.value);
+        let discount = asNumber(el.discountAmount.value);
+        let offer = asNumber(el.offerPrice.value);
+
+        const hasList = list > 0;
+        const hasDiscount = discount > 0;
+        const hasOffer = offer > 0;
+
+        if (hasList && hasDiscount && !hasOffer) {
+          offer = Math.max(list - discount, 0);
+          el.offerPrice.value = String(offer || "");
+        } else if (hasList && hasOffer && !hasDiscount) {
+          discount = Math.max(list - offer, 0);
+          el.discountAmount.value = String(discount || "");
+        } else if (!hasList && hasDiscount && hasOffer) {
+          list = discount + offer;
+          el.listPrice.value = String(list || "");
+        } else if (hasList && hasDiscount && hasOffer) {
+          if (changedField === "listPrice") {
+            discount = Math.max(list - offer, 0);
+            el.discountAmount.value = String(discount || "");
+          } else if (changedField === "discountAmount") {
+            offer = Math.max(list - discount, 0);
+            el.offerPrice.value = String(offer || "");
+          } else if (changedField === "offerPrice") {
+            discount = Math.max(list - offer, 0);
+            el.discountAmount.value = String(discount || "");
+          }
+        }
+
+        state.listPrice = sanitizeNumber(el.listPrice.value);
+        state.discountAmount = sanitizeNumber(el.discountAmount.value);
+        state.offerPrice = sanitizeNumber(el.offerPrice.value);
+        priceSyncLock = false;
+      }
+
+      function resolvePrices() {
+        const listPrice = asNumber(state.listPrice);
+        const discountAmount = asNumber(state.discountAmount);
+        const offerPrice = asNumber(state.offerPrice);
+
+        let activePrice = 0;
+        let oldPrice = 0;
+        let computedDiscount = 0;
+        let showDark = false;
+        let activeLabel = "Pris";
+
+        if (listPrice > 0 && offerPrice > 0) {
+          activePrice = offerPrice;
+          computedDiscount = Math.max(listPrice - offerPrice, 0);
+          if (computedDiscount > 0) {
+            oldPrice = listPrice;
+            showDark = true;
+            activeLabel = "Pris etter rabatt";
+          }
+        } else if (listPrice > 0 && discountAmount > 0) {
+          computedDiscount = Math.min(discountAmount, listPrice);
+          activePrice = Math.max(listPrice - computedDiscount, 0);
+          if (computedDiscount > 0 && activePrice > 0) {
+            oldPrice = listPrice;
+            showDark = true;
+            activeLabel = "Pris etter rabatt";
+          } else {
+            activePrice = listPrice;
+          }
+        } else if (listPrice > 0) {
+          activePrice = listPrice;
+        } else if (offerPrice > 0) {
+          activePrice = offerPrice;
+        }
+
+        return {
+          activePrice,
+          oldPrice,
+          discountAmount: computedDiscount,
+          showDark,
+          activeLabel
+        };
+      }
+
+      function getNonEmptySpecs() {
+        return state.specs.slice(0, LIMITS.specs.maxRows).filter((row) => nonEmpty(row.label) && nonEmpty(row.value));
+      }
+
+      function getEquipmentRows() {
+        return state.equipment.slice(0, LIMITS.equipment.maxRows).filter((row) => nonEmpty(row.name) || sanitizeNumber(row.price) !== "");
+      }
+
+      function getAccessoryRows() {
+        return state.accessories.slice(0, LIMITS.accessories.maxRows).filter((row) => nonEmpty(row.name) || sanitizeNumber(row.price) !== "");
+      }
+
+      function buildHeaderLogosHtml() {
+        return `
+          <div class="header-logos ${!state.brandLogoDataUrl ? 'no-left' : ''} ${!state.vendorLogoDataUrl ? 'no-right' : ''}">
+            <div class="brand-mark-wrap">
+              ${state.brandLogoDataUrl ? `<img class="brand-mark" src="${state.brandLogoDataUrl}" alt="Firmalogo" />` : ``}
+            </div>
+            <div class="vendor-mark-wrap">
+              ${state.vendorLogoDataUrl ? `<img class="vendor-mark" src="${state.vendorLogoDataUrl}" alt="Merkelogo" />` : ``}
+            </div>
+          </div>
+        `;
+      }
+
+      function buildImageCell(image, className, label) {
+        const hasImage = !!(image && image.dataUrl);
+        return `
+          <div class="${className} ${hasImage ? "has-image" : ""}">
+            ${hasImage ? `<img src="${image.dataUrl}" alt="${escapeHtml(image.name || "Bilde")}" />` : ""}
+            ${!hasImage ? `<div class="placeholder">${label}</div>` : ""}
+          </div>
+        `;
+      }
+
+      function buildTopBlockHtml() {
+        const p = resolvePrices();
+        const hero = state.images[0] || null;
+        const thumbs = [state.images[1] || null, state.images[2] || null, state.images[3] || null];
+
+        return `
+          <div class="top-grid">
+            <div class="gallery">
+              ${buildImageCell(hero, "hero", "Hovedbilde")}
+              <div class="thumb-row">
+                ${buildImageCell(thumbs[0], "thumb", "Bilde 2")}
+                ${buildImageCell(thumbs[1], "thumb", "Bilde 3")}
+                ${buildImageCell(thumbs[2], "thumb", "Bilde 4")}
+              </div>
+            </div>
+
+            <div class="summary">
+              ${nonEmpty(state.productName) ? `<h2>${escapeHtml(state.productName)}</h2>` : `<h2>Produktnavn</h2>`}
+              ${nonEmpty(state.shortDescription) ? `<div class="summary-subline">${escapeHtml(state.shortDescription)}</div>` : `<div class="summary-subline"></div>`}
+
+              <div class="summary-sku-box">
+                <div class="label">Varenummer</div>
+                <div class="value">${nonEmpty(state.varenummer) ? escapeHtml(state.varenummer) : ""}</div>
+              </div>
+
+              <div class="summary-row-2">
+                <div class="status-box">
+                  <div class="label">Status</div>
+                  <div class="value">${nonEmpty(state.status) ? escapeHtml(state.status) : ""}</div>
+                </div>
+                <div class="status-box">
+                  <div class="label">Individnummer</div>
+                  <div class="value">${nonEmpty(state.individnummer) ? escapeHtml(state.individnummer) : ""}</div>
+                </div>
+              </div>
+
+              <div class="price-box">
+                <div class="l">${p.activePrice > 0 ? p.activeLabel : "Pris"}</div>
+                <div class="v">${p.activePrice > 0 ? formatCurrency(p.activePrice) : ""}</div>
+                ${nonEmpty(state.priceNote) ? `<div class="s">${escapeHtml(state.priceNote)}</div>` : ``}
+              </div>
+
+              ${p.showDark ? `
+                <div class="offer-box">
+                  <div class="offer-row">
+                    <div>Listepris</div>
+                    <div>${formatCurrency(p.oldPrice)}</div>
+                  </div>
+                  <div class="offer-row">
+                    <div>Rabatt</div>
+                    <div>${formatCurrency(p.discountAmount)}</div>
+                  </div>
+                </div>
+              ` : ``}
+            </div>
+          </div>
+        `;
+      }
+
+      function buildProductInfoHtml() {
+        return `
+          <div class="sheet-section">
+            <div class="sheet-section-title">Produktinfo</div>
+            <div class="sheet-section-body">
+              <div class="text-block text-clamp-product">${nonEmpty(state.description) ? nl2br(state.description) : ""}</div>
+            </div>
+          </div>
+        `;
+      }
+
+      function buildSpecsHtml() {
+        const specs = getNonEmptySpecs();
+        return `
+          <div class="sheet-section">
+            <div class="sheet-section-title">${escapeHtml(state.specsTitle)}</div>
+            <div class="sheet-section-body">
+              ${state.showSpecs && specs.length ? `
+                <div class="spec-grid">
+                  ${specs.map((row) => `
+                    <div class="spec-item">
+                      <div class="k">${escapeHtml(row.label)}</div>
+                      <div class="v">${escapeHtml(row.value)}</div>
+                    </div>
+                  `).join("")}
+                </div>
+              ` : `<div class="text-block"></div>`}
+            </div>
+          </div>
+        `;
+      }
+
+      function buildSingleTableSection(title, rows, statusResolver) {
+        return `
+          <div class="sheet-section">
+            <div class="sheet-section-title">${escapeHtml(title)}</div>
+            <div class="sheet-section-body">
+              <table class="sheet-table">
+                <colgroup>
+                  <col class="col-product" />
+                  <col class="col-price" />
+                  <col class="col-status" />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>Produkt</th>
+                    <th class="num">Pris</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rows.length ? rows.map((row) => `
+                    <tr>
+                      <td><div class="truncate">${escapeHtml(row.name || "")}</div></td>
+                      <td class="num">${formatCurrency(asNumber(row.price))}</td>
+                      <td><div class="truncate">${escapeHtml(statusResolver(row))}</div></td>
+                    </tr>
+                  `).join("") : `
+                    <tr>
+                      <td>&nbsp;</td>
+                      <td class="num"></td>
+                      <td></td>
+                    </tr>
+                  `}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      }
+
+      function buildFreeSectionHtml() {
+        return `
+          <div class="sheet-section">
+            <div class="sheet-section-title">${escapeHtml(state.freeSectionTitle || "Fri seksjon")}</div>
+            <div class="sheet-section-body">
+              <div class="text-block text-clamp-free">${nonEmpty(state.freeSectionText) ? nl2br(state.freeSectionText) : ""}</div>
+            </div>
+          </div>
+        `;
+      }
+
+      function buildContactHtml() {
+        return `
+          <div class="contact-box">
+            <div class="contact-head">Kontaktinformasjon</div>
+            <div class="contact-body">
+              <h4>Traktor og Maskin AS</h4>
+              <div class="contact-grid">
+                <div class="contact-item">
+                  <strong>Telefon</strong>
+                  <span class="accent">381 33 000</span>
+                  <strong>Organisasjonsnr</strong>
+                  <span>925 459 399</span>
+                </div>
+                <div class="contact-item">
+                  <strong>E-post</strong>
+                  <span class="accent">tm@traktorogmaskin.no</span>
+                  <strong>Nettside</strong>
+                  <span>www.traktorogmaskin.no</span>
+                </div>
+                <div class="contact-item">
+                  <strong>Adresse</strong>
+                  <span class="accent">Setesdalsveien 620, 4619 Mosby</span>
+                </div>
+                <div class="contact-item">
+                  <strong>Åpningstider</strong>
+                  <span>Man–Fre 08:00 – 16:00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      function buildPageHtml() {
+        const equipmentRows = getEquipmentRows();
+        const accessoryRows = getAccessoryRows();
+
+        const equipmentHtml = state.showEquipment
+          ? buildSingleTableSection(
+              `${state.equipmentTitle} – ${state.equipmentIncluded ? "inkludert i pris" : "kommer som tillegg"}`,
+              equipmentRows,
+              () => state.equipmentIncluded ? "Inkludert" : "Tillegg"
+            )
+          : `
+            <div class="sheet-section">
+              <div class="sheet-section-title">${escapeHtml(state.equipmentTitle)}</div>
+              <div class="sheet-section-body"><div class="text-block"></div></div>
+            </div>
+          `;
+
+        const accessoriesHtml = state.showAccessories
+          ? buildSingleTableSection(
+              state.accessoriesTitle,
+              accessoryRows,
+              () => "Tillegg"
+            )
+          : `
+            <div class="sheet-section">
+              <div class="sheet-section-title">${escapeHtml(state.accessoriesTitle)}</div>
+              <div class="sheet-section-body"><div class="text-block"></div></div>
+            </div>
+          `;
+
+        return `
+          <div class="sheet">
+            <div class="sheet-inner">
+              <div class="sheet-body">
+                <div class="sheet-header-row">
+                  ${buildHeaderLogosHtml()}
+                </div>
+
+                <div class="sheet-top-row">
+                  ${buildTopBlockHtml()}
+                </div>
+
+                <div class="sheet-mid-row">
+                  ${buildProductInfoHtml()}
+                  ${buildSpecsHtml()}
+                </div>
+
+                <div class="sheet-table-row">
+                  ${equipmentHtml}
+                  ${accessoriesHtml}
+                </div>
+
+                <div class="sheet-spacer-row"></div>
+
+                <div class="sheet-bottom-row">
+                  ${buildFreeSectionHtml()}
+                  ${buildContactHtml()}
+                </div>
+              </div>
+            </div>
+            <div class="page-num">1 / 1</div>
+          </div>
+        `;
+      }
+
+      function renderPreview() {
+        el.previewPages.innerHTML = buildPageHtml();
+        el.pageInfo.textContent = "1 side";
+      }
+
+      function schedulePreview() {
+        clearTimeout(previewTimer);
+        previewTimer = setTimeout(() => {
+          syncStateFromForm();
+          renderForm();
+          renderPreview();
+          updateAllCounters();
+          setStatus("Klar.");
+        }, 50);
+      }
+
+      function resetState() {
+        const fresh = createState();
+        Object.keys(fresh).forEach((key) => state[key] = fresh[key]);
+
+        renderForm();
+        renderSpecTable();
+        renderEquipmentTable();
+        renderAccessoriesTable();
+        renderInputGallery();
+        renderLogoPreview(el.brandLogoPreview, "", "");
+        renderLogoPreview(el.vendorLogoPreview, "", "");
+        applyPreviewMode();
+        renderPreview();
+        setStatus("Arket er tømt.");
+      }
+
+      function downloadBlob(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+
+      function saveProjectFile() {
+        syncStateFromForm();
+
+        const payload = {
+          productName: state.productName,
+          shortDescription: state.shortDescription,
+          varenummer: state.varenummer,
+          individnummer: state.individnummer,
+          status: state.status,
+          description: state.description,
+          listPrice: state.listPrice,
+          discountAmount: state.discountAmount,
+          offerPrice: state.offerPrice,
+          priceNote: state.priceNote,
+          showSpecs: state.showSpecs,
+          showEquipment: state.showEquipment,
+          showAccessories: state.showAccessories,
+          showFreeSection: state.showFreeSection,
+          equipmentIncluded: state.equipmentIncluded,
+          specsTitle: state.specsTitle,
+          equipmentTitle: state.equipmentTitle,
+          accessoriesTitle: state.accessoriesTitle,
+          freeSectionTitle: state.freeSectionTitle,
+          freeSectionText: state.freeSectionText,
+          specs: state.specs,
+          equipment: state.equipment,
+          accessories: state.accessories,
+          images: state.images,
+          brandLogoDataUrl: state.brandLogoDataUrl,
+          vendorLogoDataUrl: state.vendorLogoDataUrl,
+          previewVisible: state.previewVisible
+        };
+
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+        downloadBlob(blob, buildProjectFilename());
+        setStatus("Prosjekt lagret.");
+      }
+
+      async function openProjectFile(e) {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        try {
+          const text = await file.text();
+          const parsed = JSON.parse(text);
+
+          state.productName = parsed.productName || "";
+          state.shortDescription = parsed.shortDescription || "";
+          state.varenummer = parsed.varenummer || "";
+          state.individnummer = parsed.individnummer || "";
+          state.status = parsed.status || "";
+          state.description = normalizeWrappedText(parsed.description || "", LIMITS.description.maxChars, LIMITS.description.maxLines, LIMITS.description.maxCharsPerLine);
+          state.listPrice = parsed.listPrice || "";
+          state.discountAmount = parsed.discountAmount || "";
+          state.offerPrice = parsed.offerPrice || "";
+          state.priceNote = parsed.priceNote || "";
+          state.showSpecs = typeof parsed.showSpecs === "boolean" ? parsed.showSpecs : true;
+          state.showEquipment = typeof parsed.showEquipment === "boolean" ? parsed.showEquipment : true;
+          state.showAccessories = typeof parsed.showAccessories === "boolean" ? parsed.showAccessories : true;
+          state.showFreeSection = typeof parsed.showFreeSection === "boolean" ? parsed.showFreeSection : true;
+          state.equipmentIncluded = typeof parsed.equipmentIncluded === "boolean" ? parsed.equipmentIncluded : true;
+          state.specsTitle = parsed.specsTitle || "Spesifikasjoner";
+          state.equipmentTitle = parsed.equipmentTitle || "Påmontert utstyr";
+          state.accessoriesTitle = parsed.accessoriesTitle || "Valgfritt tilbehør";
+          state.freeSectionTitle = parsed.freeSectionTitle || "Din totalleverandør";
+          state.freeSectionText = normalizeWrappedText(parsed.freeSectionText || "", LIMITS.freeSectionText.maxChars, LIMITS.freeSectionText.maxLines, LIMITS.freeSectionText.maxCharsPerLine);
+
+          state.specs = Array.isArray(parsed.specs) && parsed.specs.length
+            ? parsed.specs.slice(0, LIMITS.specs.maxRows).map((row) => ({
+                id: row.id || uid("spec"),
+                label: clampSingleLine(row.label || "", LIMITS.specs.labelMax),
+                value: clampSingleLine(row.value || "", LIMITS.specs.valueMax)
+              }))
+            : createDefaultSpecs();
+
+          state.equipment = Array.isArray(parsed.equipment) && parsed.equipment.length
+            ? parsed.equipment.slice(0, LIMITS.equipment.maxRows).map((row) => ({
+                id: row.id || uid("eq"),
+                name: clampSingleLine(row.name || "", LIMITS.equipment.nameMax),
+                price: sanitizeNumber(String(row.price || "").slice(0, LIMITS.equipment.priceMax))
+              }))
+            : [{ id: uid("eq"), name: "", price: "" }];
+
+          state.accessories = Array.isArray(parsed.accessories) && parsed.accessories.length
+            ? parsed.accessories.slice(0, LIMITS.accessories.maxRows).map((row) => ({
+                id: row.id || uid("acc"),
+                name: clampSingleLine(row.name || "", LIMITS.accessories.nameMax),
+                price: sanitizeNumber(String(row.price || "").slice(0, LIMITS.accessories.priceMax))
+              }))
+            : [{ id: uid("acc"), name: "", price: "" }];
+
+          state.images = Array.isArray(parsed.images) ? parsed.images.slice(0, 4) : [];
+          state.brandLogoDataUrl = parsed.brandLogoDataUrl || "";
+          state.vendorLogoDataUrl = parsed.vendorLogoDataUrl || "";
+          state.previewVisible = typeof parsed.previewVisible === "boolean" ? parsed.previewVisible : true;
+
+          renderForm();
+          renderSpecTable();
+          renderEquipmentTable();
+          renderAccessoriesTable();
+          renderInputGallery();
+          renderLogoPreview(el.brandLogoPreview, state.brandLogoDataUrl, "Firmalogo");
+          renderLogoPreview(el.vendorLogoPreview, state.vendorLogoDataUrl, "Merkelogo");
+          applyPreviewMode();
+          syncPriceInputs("offerPrice");
+          renderPreview();
+          updateAllCounters();
+          setStatus("Prosjekt åpnet.");
+        } catch (error) {
+          console.error(error);
+          alert("Kunne ikke åpne prosjektfilen.");
+          setStatus("Feil ved åpning av prosjekt.", true);
+        } finally {
+          e.target.value = "";
+        }
+      }
+
+      function waitForImagesInDocument(doc) {
+        const images = Array.from(doc.images || []);
+        return Promise.all(
+          images.map((img) => {
+            if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+            return new Promise((resolve) => {
+              const done = () => resolve();
+              img.addEventListener("load", done, { once: true });
+              img.addEventListener("error", done, { once: true });
+            });
+          })
+        );
+      }
+
+      async function openPrintWindow() {
+        syncStateFromForm();
+        renderForm();
+        renderPreview();
+
+        const page = buildPageHtml();
+        const styles = document.querySelector("style").innerHTML;
+        const pdfFilenameBase = buildPdfFilename().replace(/\.pdf$/i, "");
+
+        const printWindow = window.open("", "_blank", "width=1100,height=900");
+        if (!printWindow) throw new Error("Popup blocked");
+
+        printWindow.document.open();
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html lang="no">
+          <head>
+            <meta charset="UTF-8" />
+            <title>${escapeHtml(pdfFilenameBase)}</title>
+            <style>${styles}</style>
+          </head>
+          <body style="background:#fff;">
+            <section class="card preview-card" style="border:none;box-shadow:none;">
+              <div class="preview-area" style="padding:0;background:#fff;">
+                <div class="preview-pages">${page}</div>
+              </div>
+            </section>
+          </body>
+          </html>
+        `);
+        printWindow.document.close();
+
+        return new Promise((resolve, reject) => {
+          const startPrint = async () => {
+            try {
+              await waitForImagesInDocument(printWindow.document);
+              await new Promise((r) => setTimeout(r, 350));
+
+              const closePrintWindow = () => {
+                try { printWindow.close(); } catch (e) {}
+              };
+
+              if (typeof printWindow.addEventListener === "function") {
+                printWindow.addEventListener("afterprint", closePrintWindow, { once: true });
+              } else {
+                printWindow.onafterprint = closePrintWindow;
+              }
+
+              printWindow.focus();
+              printWindow.print();
+              resolve(printWindow);
+            } catch (error) {
+              reject(error);
+            }
+          };
+
+          if (printWindow.document.readyState === "complete") {
+            startPrint();
+            return;
+          }
+
+          printWindow.addEventListener("load", startPrint, { once: true });
+        });
+      }
+
+      function bindTextLimiter(inputEl, options, isTextarea = false) {
+        const handler = () => {
+          if (isTextarea) {
+            inputEl.value = normalizeWrappedText(
+              inputEl.value,
+              options.maxChars,
+              options.maxLines,
+              options.maxCharsPerLine
+            );
+          } else {
+            inputEl.value = clampSingleLine(inputEl.value, options.maxChars || options);
+          }
+          updateAllCounters();
+          schedulePreview();
+        };
+
+        inputEl.addEventListener("input", handler);
+
+        if (isTextarea) {
+          inputEl.addEventListener("paste", () => setTimeout(handler, 0));
+        }
+      }
+
+      function bindFormEvents() {
+        bindTextLimiter(el.productName, LIMITS.productName);
+        bindTextLimiter(el.shortDescription, LIMITS.shortDescription);
+        bindTextLimiter(el.varenummer, LIMITS.varenummer);
+        bindTextLimiter(el.individnummer, LIMITS.individnummer);
+        bindTextLimiter(el.priceNote, LIMITS.priceNote);
+        bindTextLimiter(el.specsTitle, LIMITS.specsTitle);
+        bindTextLimiter(el.equipmentTitle, LIMITS.equipmentTitle);
+        bindTextLimiter(el.accessoriesTitle, LIMITS.accessoriesTitle);
+        bindTextLimiter(el.freeSectionTitle, LIMITS.freeSectionTitle);
+        bindTextLimiter(el.description, LIMITS.description, true);
+        bindTextLimiter(el.freeSectionText, LIMITS.freeSectionText, true);
+
+        el.status.addEventListener("change", schedulePreview);
+
+        el.listPrice.addEventListener("input", (e) => {
+          el.listPrice.value = sanitizeNumber(e.target.value);
+          syncPriceInputs("listPrice");
+          schedulePreview();
+        });
+
+        el.discountAmount.addEventListener("input", (e) => {
+          el.discountAmount.value = sanitizeNumber(e.target.value);
+          syncPriceInputs("discountAmount");
+          schedulePreview();
+        });
+
+        el.offerPrice.addEventListener("input", (e) => {
+          el.offerPrice.value = sanitizeNumber(e.target.value);
+          syncPriceInputs("offerPrice");
+          schedulePreview();
+        });
+
+        el.toggleSpecs.addEventListener("change", schedulePreview);
+        el.toggleEquipment.addEventListener("change", schedulePreview);
+        el.toggleAccessories.addEventListener("change", schedulePreview);
+        el.toggleFreeSection.addEventListener("change", schedulePreview);
+
+        el.equipmentIncluded.addEventListener("change", () => {
+          renderEquipmentTable();
+          schedulePreview();
+        });
+
+        el.addSpecBtn.addEventListener("click", () => {
+          if (state.specs.length >= LIMITS.specs.maxRows) return;
+          state.specs.push({ id: uid("spec"), label: "", value: "" });
+          renderSpecTable();
+          schedulePreview();
+        });
+
+        el.addEquipmentBtn.addEventListener("click", () => {
+          if (state.equipment.length >= LIMITS.equipment.maxRows) return;
+          state.equipment.push({ id: uid("eq"), name: "", price: "" });
+          renderEquipmentTable();
+          schedulePreview();
+        });
+
+        el.addAccessoryBtn.addEventListener("click", () => {
+          if (state.accessories.length >= LIMITS.accessories.maxRows) return;
+          state.accessories.push({ id: uid("acc"), name: "", price: "" });
+          renderAccessoriesTable();
+          schedulePreview();
+        });
+      }
+
+      function bindImageUploader() {
+        el.btnAddImages.addEventListener("click", () => el.multiImageInput.click());
+
+        el.multiImageInput.addEventListener("change", async (e) => {
+          const files = e.target.files;
+          if (!files || !files.length) return;
+          await addFilesToImages(files);
+          e.target.value = "";
+        });
+
+        el.btnClearImages.addEventListener("click", () => {
+          state.images = [];
+          renderInputGallery();
+          schedulePreview();
+          setStatus("Bilder tømt.");
+        });
+
+        ["dragenter", "dragover"].forEach((type) => {
+          el.dropzone.addEventListener(type, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            el.dropzone.classList.add("dragover");
+          });
+        });
+
+        ["dragleave", "drop"].forEach((type) => {
+          el.dropzone.addEventListener(type, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            el.dropzone.classList.remove("dragover");
+          });
+        });
+
+        el.dropzone.addEventListener("drop", async (e) => {
+          const files = e.dataTransfer?.files;
+          if (!files?.length) return;
+          await addFilesToImages(files);
+        });
+      }
+
+      function bindLogoInputs() {
+        el.btnBrandLogo.addEventListener("click", () => el.brandLogoInput.click());
+        el.btnVendorLogo.addEventListener("click", () => el.vendorLogoInput.click());
+
+        el.brandLogoInput.addEventListener("change", async (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          await setSingleLogo(file, "brand");
+          e.target.value = "";
+        });
+
+        el.vendorLogoInput.addEventListener("change", async (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+          await setSingleLogo(file, "vendor");
+          e.target.value = "";
+        });
+
+        el.btnClearBrandLogo.addEventListener("click", () => {
+          state.brandLogoDataUrl = "";
+          renderLogoPreview(el.brandLogoPreview, "", "");
+          schedulePreview();
+        });
+
+        el.btnClearVendorLogo.addEventListener("click", () => {
+          state.vendorLogoDataUrl = "";
+          renderLogoPreview(el.vendorLogoPreview, "", "");
+          schedulePreview();
+        });
+      }
+
+      function bindButtons() {
+        el.btnTogglePreview.addEventListener("click", () => {
+          state.previewVisible = !state.previewVisible;
+          applyPreviewMode();
+        });
+
+        el.btnReset.addEventListener("click", () => {
+          if (!window.confirm("Tømme hele arket?")) return;
+          resetState();
+        });
+
+        el.btnSaveProject.addEventListener("click", saveProjectFile);
+        el.btnOpenProject.addEventListener("click", () => el.projectFileInput.click());
+        el.projectFileInput.addEventListener("change", openProjectFile);
+
+        el.btnPrintPdf.addEventListener("click", async () => {
+          try {
+            setStatus("Åpner utskrift / lagre PDF ...");
+            await openPrintWindow();
+            setStatus("Bruk utskriftsdialogen for skriv ut eller lagre som PDF.");
+          } catch (error) {
+            console.error(error);
+            alert("Kunne ikke starte utskrift. Tillat popup-vinduer og prøv igjen.");
+            setStatus("Utskriftsfeil.", true);
+          }
+        });
+      }
+
+      function init() {
+        renderForm();
+        renderSpecTable();
+        renderEquipmentTable();
+        renderAccessoriesTable();
+        renderInputGallery();
+        renderLogoPreview(el.brandLogoPreview, "", "");
+        renderLogoPreview(el.vendorLogoPreview, "", "");
+        applyPreviewMode();
+        bindFormEvents();
+        bindTables();
+        bindImageUploader();
+        bindLogoInputs();
+        bindButtons();
+        renderPreview();
+        updateAllCounters();
+        setStatus("Klar.");
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>
